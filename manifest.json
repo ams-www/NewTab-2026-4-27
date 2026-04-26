@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Kanon New Tab",
+  "version": "2.0",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  }
+}
