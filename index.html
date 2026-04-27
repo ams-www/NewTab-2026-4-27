@@ -1,24 +1,31 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kanon New Tab</title>
+  <title>ZY New Tab</title>
   <link rel="stylesheet" href="output.css">
 </head>
+
 <body class="m-0 font-sans bg-slate-50 overflow-hidden">
   <div id="main-content" class="p-8 max-w-7xl mx-auto h-screen overflow-y-auto">
-    <h1 class="text-center mb-8 text-slate-700 text-3xl">✨ Kanon New Tab</h1>
+    <h1 class="text-center mb-8 text-slate-700 text-3xl">✨ ZY New Tab</h1>
     <p class="text-center text-slate-600 mb-8">お気に入りのサイトをすばやく整理・アクセス</p>
     <div id="icon-container" class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4"></div>
   </div>
 
   <!-- hover:-translate-y-0.5 を削除して持ち上がる動きを除去 -->
-  <button id="open-edit-btn" class="fixed top-4 left-4 z-30 px-4 py-2.5 bg-slate-500 text-white border-none rounded-lg cursor-pointer font-medium shadow-md transition-transform">✏️ 編集モード</button>
-  <button id="open-settings-btn" class="fixed top-4 right-4 z-30 px-4 py-2.5 bg-blue-500 text-white border-none rounded-lg cursor-pointer font-medium shadow-lg transition-transform">設定・管理</button>
-  
-  <div id="drawer-backdrop" class="fixed inset-0 bg-black/30 opacity-0 pointer-events-none transition-opacity duration-300 z-40"></div>
-  <div id="settings-drawer-overlay" class="fixed top-0 -right-full w-[360px] h-full bg-white shadow-[-4px_0_15px_rgba(0,0,0,0.1)] transition-[right] duration-300 z-50">
+  <button id="open-edit-btn"
+    class="fixed top-4 left-4 z-30 px-4 py-2.5 bg-slate-500 text-white border-none rounded-lg cursor-pointer font-medium shadow-md transition-transform">✏️
+    編集モード</button>
+  <button id="open-settings-btn"
+    class="fixed top-4 right-4 z-30 px-4 py-2.5 bg-blue-500 text-white border-none rounded-lg cursor-pointer font-medium shadow-lg transition-transform">設定・管理</button>
+
+  <div id="drawer-backdrop"
+    class="fixed inset-0 bg-black/30 opacity-0 pointer-events-none transition-opacity duration-300 z-40"></div>
+  <div id="settings-drawer-overlay"
+    class="fixed top-0 -right-full w-[360px] h-full bg-white shadow-[-4px_0_15px_rgba(0,0,0,0.1)] transition-[right] duration-300 z-50">
     <iframe id="settings-iframe" class="w-full h-full border-none" src="settings.html"></iframe>
   </div>
 
@@ -28,4 +35,5 @@
 
   <script src="script.js"></script>
 </body>
+
 </html>
