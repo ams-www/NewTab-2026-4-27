@@ -12,33 +12,33 @@ jobs:
       contents: write
 
     steps:
-      - name: リポジトリをチェックアウト
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Node.jsをセットアップ
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: crxツールをインストール
+      - name: Install crx tool
         run: npm install -g crx
 
-      - name: 秘密鍵を作成
+      - name: Create secret key
         run: echo "${{ secrets.EXTENSION_PEM }}" > key.pem
 
-      - name: CRXファイルにパッケージ化
-        # 今のディレクトリをkanon.crxという名前でパッケージ化
+      - name: Package into CRX file
+        # Package the current directory as kanon.crx
         run: crx pack . -o kanon.crx -p key.pem
 
-      - name: 時刻を取得
+      - name: Get current time
         id: vars
         run: echo "TAG_NAME=auto-$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
 
-      - name: リリースを作成してファイルをアップロード
+      - name: Create release and upload file
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.vars.outputs.TAG_NAME }}
           name: Release ${{ steps.vars.outputs.TAG_NAME }}
           files: kanon.crx
-          prerelease: true  # ★ここを追加！これがベータバッジの正体だよ
-          body: "自動生成されたベータ版のCRXリリースです。"
+          prerelease: true  # ★Add this here! This is the identity of the beta badge
+          body: "Auto-generated beta version CRX release."
