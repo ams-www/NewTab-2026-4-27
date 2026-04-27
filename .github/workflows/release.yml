@@ -1,0 +1,43 @@
+name: Auto Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.jsをセットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: crxツールをインストール
+        run: npm install -g crx
+
+      - name: 秘密鍵を作成
+        run: echo "${{ secrets.EXTENSION_PEM }}" > key.pem
+
+      - name: CRXファイルにパッケージ化
+        # 今のディレクトリをkanon.crxという名前でパッケージ化
+        run: crx pack . -o kanon.crx -p key.pem
+
+      - name: 時刻を取得
+        id: vars
+        run: echo "TAG_NAME=auto-$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
+
+      - name: リリースを作成してファイルをアップロード
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.TAG_NAME }}
+          name: Release ${{ steps.vars.outputs.TAG_NAME }}
+          files: kanon.crx
+          body: "自動生成されたCRX形式のリリースビルドです。"
