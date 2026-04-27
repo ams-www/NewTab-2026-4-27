@@ -40,4 +40,5 @@ jobs:
           tag_name: ${{ steps.vars.outputs.TAG_NAME }}
           name: Release ${{ steps.vars.outputs.TAG_NAME }}
           files: kanon.crx
-          body: "自動生成されたCRX形式のリリースビルドです。"
+          prerelease: true  # ★ここを追加！これがベータバッジの正体だよ
+          body: "自動生成されたベータ版のCRXリリースです。"
