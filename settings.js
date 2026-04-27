@@ -28,44 +28,55 @@ searchInput.addEventListener('input', (e) => {
   searchTimer = setTimeout(() => sendToParent({ type: 'SEARCH_QUERY', query: e.target.value }), 150);
 });
 
+// titleからslugを生成する関数
+function titleToSlug(title) {
+  return title
+    .toLowerCase()
+    .replace(/\s+/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
 async function fetchSimpleIcons() {
   try {
-    const res = await fetch('https://raw.githubusercontent.com/simple-icons/simple-icons/refs/heads/develop/data/simple-icons.json');
+    const res = await fetch('https://raw.githubusercontent.com/simple-icons/simple-icons/develop/data/simple-icons.json');
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     const data = await res.json();
-    if (data && Array.isArray(data.icons)) {
-      simpleIconsList = data.icons;
+    // dataは直接配列
+    if (Array.isArray(data)) {
+      simpleIconsList = data;
     } else {
       simpleIconsList = [];
     }
-  } catch(e) { 
-    console.warn('Simple Iconsのリスト取得失敗。予備の読み込みを試みます:', e);
-    simpleIconsList = []; 
+  } catch (e) {
+    console.warn('Simple Iconsのリスト取得失敗:', e);
+    simpleIconsList = [];
   }
 }
 fetchSimpleIcons();
 
 siSearchInput.addEventListener('input', (e) => {
   const q = e.target.value.toLowerCase().trim();
-  
+
   if (!q || !Array.isArray(simpleIconsList) || simpleIconsList.length === 0) {
     siSuggestionsDiv.classList.add('hidden');
     return;
   }
-  
+
   const matches = simpleIconsList.filter(i => {
-    const titleMatch = i.title && i.title.toLowerCase().includes(q);
-    const slugMatch = i.slug && i.slug.includes(q);
-    return titleMatch || slugMatch;
+    const slug = titleToSlug(i.title);
+    return i.title.toLowerCase().includes(q) || slug.includes(q);
   }).slice(0, 10);
 
   if (matches.length > 0) {
-    siSuggestionsDiv.innerHTML = matches.map(m => `
-      <div class="si-item" data-slug="${m.slug}" data-title="${m.title}" style="padding: 0.5rem; cursor: pointer; display:flex; align-items:center; gap:0.5rem; border-bottom:1px solid #f1f5f9;">
-        <img src="https://cdn.simpleicons.org/${m.slug}" style="width:16px; height:16px;" onerror="this.src='img/world.svg'">
-        <span style="font-size:0.85rem; color:#334155;">${m.title}</span>
-      </div>
-    `).join('');
+    siSuggestionsDiv.innerHTML = matches.map(m => {
+      const slug = titleToSlug(m.title);
+      return `
+        <div class="si-item" data-slug="${slug}" data-title="${m.title}" style="padding: 0.5rem; cursor: pointer; display:flex; align-items:center; gap:0.5rem; border-bottom:1px solid #f1f5f9;">
+          <img src="https://cdn.simpleicons.org/${slug}" style="width:16px; height:16px;" onerror="this.src='img/world.svg'">
+          <span style="font-size:0.85rem; color:#334155;">${m.title}</span>
+        </div>
+      `;
+    }).join('');
     siSuggestionsDiv.classList.remove('hidden');
   } else {
     siSuggestionsDiv.classList.add('hidden');
@@ -75,13 +86,13 @@ siSearchInput.addEventListener('input', (e) => {
 siSuggestionsDiv.addEventListener('click', (e) => {
   const item = e.target.closest('.si-item');
   if (!item) return;
-  
+
   selectedSimpleIconSlug = item.dataset.slug;
-  
+
   siPreviewImg.src = `https://cdn.simpleicons.org/${selectedSimpleIconSlug}`;
   siSelectedName.textContent = item.dataset.title;
   siPreviewDiv.classList.remove('hidden');
-  
+
   siSearchInput.classList.add('hidden');
   siSuggestionsDiv.classList.add('hidden');
   siSearchInput.value = '';
@@ -104,11 +115,11 @@ async function fetchSvgBase64(slug) {
   const res = await fetch(url);
   if (!res.ok) throw new Error('SVG fetch failed');
   const svgText = await res.text();
-  
+
   const encoder = new TextEncoder();
   const bytes = encoder.encode(svgText);
   const binary = Array.from(bytes).map(b => String.fromCharCode(b)).join('');
-  
+
   return `data:image/svg+xml;base64,${btoa(binary)}`;
 }
 
@@ -179,7 +190,7 @@ addBtn.addEventListener('click', async () => {
     urlInput.value = '';
     iconFileInput.value = '';
     iconUrlInput.value = '';
-    
+
     selectedSimpleIconSlug = null;
     siPreviewDiv.classList.add('hidden');
     siSearchInput.classList.remove('hidden');
