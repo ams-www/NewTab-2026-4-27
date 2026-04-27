@@ -68,15 +68,28 @@ siSearchInput.addEventListener('input', (e) => {
   }).slice(0, 10);
 
   if (matches.length > 0) {
-    siSuggestionsDiv.innerHTML = matches.map(m => {
+    siSuggestionsDiv.innerHTML = '';
+    matches.forEach(m => {
       const slug = titleToSlug(m.title);
-      return `
-        <div class="si-item" data-slug="${slug}" data-title="${m.title}" style="padding: 0.5rem; cursor: pointer; display:flex; align-items:center; gap:0.5rem; border-bottom:1px solid #f1f5f9;">
-          <img src="https://cdn.simpleicons.org/${slug}" style="width:16px; height:16px;" onerror="this.src='img/world.svg'">
-          <span style="font-size:0.85rem; color:#334155;">${m.title}</span>
-        </div>
-      `;
-    }).join('');
+
+      const item = document.createElement('div');
+      item.className = 'si-item';
+      item.dataset.slug = slug;
+      item.dataset.title = m.title;
+      item.style.cssText = 'padding:0.5rem;cursor:pointer;display:flex;align-items:center;gap:0.5rem;border-bottom:1px solid #f1f5f9;';
+
+      const img = document.createElement('img');
+      img.src = `https://cdn.simpleicons.org/${slug}`;
+      img.style.cssText = 'width:16px;height:16px;';
+      img.addEventListener('error', () => { img.src = 'img/world.svg'; });
+
+      const span = document.createElement('span');
+      span.style.cssText = 'font-size:0.85rem;color:#334155;';
+      span.textContent = m.title;
+
+      item.append(img, span);
+      siSuggestionsDiv.appendChild(item);
+    });
     siSuggestionsDiv.classList.remove('hidden');
   } else {
     siSuggestionsDiv.classList.add('hidden');
