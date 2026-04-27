@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "Kanon New Tab",
   "version": "2.0",
+  "key": "YAJuMA0GCSqGSIb3DQEYJSNPI4YAJUSEnPAIgQCfHy1M+jghaHyaVAILzx/c/Dy+RXtcaP9/5pC7EY8JlNEI/G4DIIng9IzlrH8UWSexMWMyGUyjsnpi2PkYFrqfVzhc2agAY3PX9D0KHG3FLN3mNoz1YTBHvO5QSXJf810qW0tTYuoGqeTfXtF9odLdg20Xd0YrLmtS4FXkpSYGDwYJSNPI",
   "permissions": [
     "storage"
   ],

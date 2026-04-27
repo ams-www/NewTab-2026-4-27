@@ -5,41 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kanon New Tab</title>
   <link rel="stylesheet" href="output.css">
-  <style>
-    body { margin: 0; font-family: system-ui, sans-serif; background: #f8fafc; overflow: hidden; }
-    #main-content { padding: 2rem; max-width: 1200px; margin: 0 auto; }
-    #icon-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; }
-    
-    /* ドロワー＆iframeレイアウト */
-    #settings-drawer-overlay {
-      position: fixed; top: 0; right: -100%; width: 360px; height: 100%;
-      background: white; box-shadow: -4px 0 15px rgba(0,0,0,0.1);
-      transition: right 0.3s ease; z-index: 50;
-    }
-    body.drawer-open #settings-drawer-overlay { right: 0; }
-    #settings-iframe { width: 100%; height: 100%; border: none; }
-    #drawer-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.3); opacity: 0; pointer-events: none;
-      transition: opacity 0.3s ease; z-index: 40;
-    }
-    body.drawer-open #drawer-backdrop { opacity: 1; pointer-events: auto; }
-    .open-btn {
-      position: fixed; top: 1rem; right: 1rem; padding: 0.6rem 1rem;
-      background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;
-    }
-  </style>
 </head>
-<body>
-  <div id="main-content">
-    <h1 style="text-align:center; margin-bottom: 2rem; color: #334155;">✨ Kanon New Tab</h1>
-    <p style="text-align:center; color: #64748b; margin-bottom: 2rem;">お気に入りのサイトをすばやく整理・アクセス</p>
-    <div id="icon-container"></div>
+<body class="m-0 font-sans bg-slate-50 overflow-hidden">
+  <div id="main-content" class="p-8 max-w-7xl mx-auto h-screen overflow-y-auto">
+    <h1 class="text-center mb-8 text-slate-700 text-3xl">✨ Kanon New Tab</h1>
+    <p class="text-center text-slate-600 mb-8">お気に入りのサイトをすばやく整理・アクセス</p>
+    <div id="icon-container" class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4"></div>
   </div>
 
-  <button id="open-drawer-btn" class="open-btn">設定・管理</button>
-  <div id="drawer-backdrop"></div>
-  <div id="settings-drawer-overlay">
-    <iframe id="settings-iframe" src="settings.html"></iframe>
+  <!-- hover:-translate-y-0.5 を削除して持ち上がる動きを除去 -->
+  <button id="open-edit-btn" class="fixed top-4 left-4 z-30 px-4 py-2.5 bg-slate-500 text-white border-none rounded-lg cursor-pointer font-medium shadow-md transition-transform">✏️ 編集モード</button>
+  <button id="open-settings-btn" class="fixed top-4 right-4 z-30 px-4 py-2.5 bg-blue-500 text-white border-none rounded-lg cursor-pointer font-medium shadow-lg transition-transform">設定・管理</button>
+  
+  <div id="drawer-backdrop" class="fixed inset-0 bg-black/30 opacity-0 pointer-events-none transition-opacity duration-300 z-40"></div>
+  <div id="settings-drawer-overlay" class="fixed top-0 -right-full w-[360px] h-full bg-white shadow-[-4px_0_15px_rgba(0,0,0,0.1)] transition-[right] duration-300 z-50">
+    <iframe id="settings-iframe" class="w-full h-full border-none" src="settings.html"></iframe>
+  </div>
+
+  <div id="edit-overlay" class="fixed inset-0 bg-slate-200 z-60 hidden flex-col">
+    <iframe id="edit-iframe" class="w-full h-full border-none" src="edit.html"></iframe>
   </div>
 
   <script src="script.js"></script>

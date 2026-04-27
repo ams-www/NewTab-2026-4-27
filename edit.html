@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>編集モード</title>
+  <link rel="stylesheet" href="output.css">
+</head>
+<body class="m-0 font-sans bg-transparent overflow-y-auto">
+  <div class="sticky top-0 bg-slate-200 py-4 px-8 flex justify-between items-center border-b-2 border-slate-300 z-10">
+    <h2 class="m-0 text-slate-700 text-xl">🛠️ 編集モード (ドラッグ＆ドロップで並び替え)</h2>
+    <button id="close-edit-btn" class="bg-red-500 text-white py-2.5 px-6 border-none rounded-lg font-bold cursor-pointer transition hover:bg-red-600">完了して戻る</button>
+  </div>
+
+  <div id="main-content" class="p-8 max-w-7xl mx-auto">
+    <div id="icon-container" class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4"></div>
+  </div>
+
+  <script src="edit.js"></script>
+</body>
+</html>
