@@ -16,78 +16,116 @@ const siSelectedName = document.getElementById('si-selected-name');
 const siClearBtn = document.getElementById('si-clear-btn');
 
 let simpleIconsList = [];
-let selectedSimpleIconSlug = null;
+let selectedSimpleIcon = null;
 
 const sendToParent = (data) => window.parent.postMessage(data, '*');
 
 closeBtn.addEventListener('click', () => sendToParent({ type: 'CLOSE_DRAWER' }));
 
-let searchTimer;
-searchInput.addEventListener('input', (e) => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => sendToParent({ type: 'SEARCH_QUERY', query: e.target.value }), 150);
-});
-
-// titleからslugを生成する関数
+/**
+ * タイトルから Slug を生成する
+ */
 function titleToSlug(title) {
   return title
     .toLowerCase()
-    .replace(/\s+/g, '')
-    .replace(/[^a-z0-9]/g, '');
+    .replace(/\+/g, 'plus')
+    .replace(/\./g, 'dot')
+    .replace(/&/g, 'and')
+    .replace(/đ/g, 'd')
+    .replace(/ħ/g, 'h')
+    .replace(/ı/g, 'i')
+    .replace(/ĸ/g, 'k')
+    .replace(/ŀ/g, 'l')
+    .replace(/ł/g, 'l')
+    .replace(/ß/g, 'ss')
+    .replace(/ŧ/g, 't')
+    .replace(/[^\w]/g, '');
 }
 
+/**
+ * jsDelivr からアイコンの情報を取得
+ */
 async function fetchSimpleIcons() {
   try {
-    const res = await fetch('https://raw.githubusercontent.com/simple-icons/simple-icons/develop/data/simple-icons.json');
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    const res = await fetch('https://cdn.jsdelivr.net/npm/simple-icons@latest/_data/simple-icons.json');
+    if (!res.ok) throw new Error('Network response was not ok');
     const data = await res.json();
-    // dataは直接配列
-    if (Array.isArray(data)) {
-      simpleIconsList = data;
-    } else {
-      simpleIconsList = [];
-    }
+    simpleIconsList = Array.isArray(data) ? data : (data.icons || []);
   } catch (e) {
-    console.warn('Simple Iconsのリスト取得失敗:', e);
-    simpleIconsList = [];
+    console.warn('アイコンリストの取得に失敗しました:', e);
   }
 }
 fetchSimpleIcons();
 
+/**
+ * 検索処理（色付き・背景透過版）
+ */
 siSearchInput.addEventListener('input', (e) => {
   const q = e.target.value.toLowerCase().trim();
-
-  if (!q || !Array.isArray(simpleIconsList) || simpleIconsList.length === 0) {
+  if (!q || simpleIconsList.length === 0) {
     siSuggestionsDiv.classList.add('hidden');
     return;
   }
 
-  const matches = simpleIconsList.filter(i => {
-    const slug = titleToSlug(i.title);
-    return i.title.toLowerCase().includes(q) || slug.includes(q);
-  }).slice(0, 10);
+  const matches = simpleIconsList
+    .filter(i => i.title.toLowerCase().includes(q))
+    .slice(0, 10);
 
   if (matches.length > 0) {
     siSuggestionsDiv.innerHTML = '';
     matches.forEach(m => {
       const slug = titleToSlug(m.title);
+      const hex = m.hex ? `#${m.hex}` : '#555';
+      const iconUrl = `https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${slug}.svg`;
 
       const item = document.createElement('div');
       item.className = 'si-item';
-      item.dataset.slug = slug;
-      item.dataset.title = m.title;
-      item.style.cssText = 'padding:0.5rem;cursor:pointer;display:flex;align-items:center;gap:0.5rem;border-bottom:1px solid #f1f5f9;';
+      item.style.cssText = 'padding:0.6rem;cursor:pointer;display:flex;align-items:center;gap:0.7rem;border-bottom:1px solid #f1f5f9;';
 
-      const img = document.createElement('img');
-      img.src = `https://simpleicons.org/icons/${slug}`;
-      img.style.cssText = 'width:16px;height:16px;';
-      img.addEventListener('error', () => { img.src = 'img/world.svg'; });
+      const iconDisplay = document.createElement('div');
+      iconDisplay.style.cssText = `
+        width:24px;
+        height:24px;
+        background-color:${hex};
+        -webkit-mask-image: url(${iconUrl});
+        mask-image: url(${iconUrl});
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        mask-position: center;
+      `;
 
       const span = document.createElement('span');
-      span.style.cssText = 'font-size:0.85rem;color:#334155;';
+      span.style.cssText = 'font-size:0.9rem;color:#334155;';
       span.textContent = m.title;
 
-      item.append(img, span);
+      item.append(iconDisplay, span);
+
+      item.addEventListener('click', () => {
+        selectedSimpleIcon = { ...m, slug, iconUrl };
+        
+        siPreviewImg.style.cssText = `
+          width:24px;
+          height:24px;
+          background-color:${hex};
+          -webkit-mask-image: url(${iconUrl});
+          mask-image: url(${iconUrl});
+          -webkit-mask-size: contain;
+          mask-size: contain;
+        `;
+        siPreviewImg.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+        siPreviewImg.parentElement.style.backgroundColor = "transparent";
+        siPreviewImg.parentElement.style.border = "none";
+        
+        siSelectedName.textContent = m.title;
+        siPreviewDiv.classList.remove('hidden');
+        siPreviewDiv.classList.add('flex');
+        siSearchInput.classList.add('hidden');
+        siSuggestionsDiv.classList.add('hidden');
+        siSearchInput.value = '';
+      });
+
       siSuggestionsDiv.appendChild(item);
     });
     siSuggestionsDiv.classList.remove('hidden');
@@ -96,121 +134,100 @@ siSearchInput.addEventListener('input', (e) => {
   }
 });
 
-siSuggestionsDiv.addEventListener('click', (e) => {
-  const item = e.target.closest('.si-item');
-  if (!item) return;
-
-  selectedSimpleIconSlug = item.dataset.slug;
-
-  siPreviewImg.src = `https://cdn.simpleicons.org/${selectedSimpleIconSlug}`;
-  siSelectedName.textContent = item.dataset.title;
-  siPreviewDiv.classList.remove('hidden');
-
-  siSearchInput.classList.add('hidden');
-  siSuggestionsDiv.classList.add('hidden');
-  siSearchInput.value = '';
-});
-
 siClearBtn.addEventListener('click', () => {
-  selectedSimpleIconSlug = null;
+  selectedSimpleIcon = null;
   siPreviewDiv.classList.add('hidden');
+  siPreviewDiv.classList.remove('flex');
   siSearchInput.classList.remove('hidden');
 });
 
-document.addEventListener('click', (e) => {
-  if (!siSearchInput.contains(e.target) && !siSuggestionsDiv.contains(e.target)) {
-    siSuggestionsDiv.classList.add('hidden');
+/**
+ * アイコンを色付き・透過SVGとしてBase64変換
+ */
+async function fetchIconAsBase64(iconUrl, hex) {
+  try {
+    const res = await fetch(iconUrl);
+    if (!res.ok) return null;
+    const svgText = await res.text();
+    
+    const coloredSvg = svgText.replace('<svg', `<svg fill="#${hex}"`);
+    return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(coloredSvg)))}`;
+  } catch (e) {
+    return null;
   }
-});
-
-async function fetchSvgBase64(slug) {
-  const url = `https://cdn.simpleicons.org/${slug}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('SVG fetch failed');
-  const svgText = await res.text();
-
-  const encoder = new TextEncoder();
-  const bytes = encoder.encode(svgText);
-  const binary = Array.from(bytes).map(b => String.fromCharCode(b)).join('');
-
-  return `data:image/svg+xml;base64,${btoa(binary)}`;
 }
 
-function resizeImageAndGetBase64(fileOrBlob, maxWidth = 128, maxHeight = 128) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
-        } else {
-          if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
-        }
-
-        canvas.width = width; canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/png'));
-      };
-      img.onerror = () => reject(new Error('画像の読み込みに失敗したよ'));
-      img.src = e.target.result;
-    };
-    reader.onerror = () => reject(new Error('ファイルの読み込みに失敗したよ'));
-    reader.readAsDataURL(fileOrBlob);
-  });
-}
-
+/**
+ * サイト追加
+ */
 addBtn.addEventListener('click', async () => {
-  const name = nameInput.value.trim() || 'Unnamed';
+  const name = nameInput.value.trim() || '名称未設定';
   let url = urlInput.value.trim();
-  if (!url) return alert('URLを入力してね！');
+  if (!url) return alert('URLを入力してね。');
   if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
 
   addBtn.disabled = true;
-  addBtn.textContent = '処理中...';
+  addBtn.textContent = '保存中...';
 
   let iconData = null;
-  const iconFile = iconFileInput.files[0];
-  const iconUrl = iconUrlInput.value.trim();
-
   try {
-    if (selectedSimpleIconSlug) {
-      iconData = await fetchSvgBase64(selectedSimpleIconSlug);
-    } else if (iconFile) {
-      iconData = await resizeImageAndGetBase64(iconFile);
-    } else if (iconUrl) {
-      const res = await fetch(iconUrl);
-      if (!res.ok) throw new Error('ネットワークエラー');
+    if (selectedSimpleIcon) {
+      iconData = await fetchIconAsBase64(selectedSimpleIcon.iconUrl, selectedSimpleIcon.hex);
+    } else if (iconFileInput.files[0]) {
+      iconData = await resizeImage(iconFileInput.files[0]);
+    } else if (iconUrlInput.value.trim()) {
+      const res = await fetch(iconUrlInput.value.trim());
       const blob = await res.blob();
-      iconData = await resizeImageAndGetBase64(blob);
+      iconData = await resizeImage(blob);
     }
   } catch (e) {
-    alert('アイコンの取得や変換に失敗しちゃった。とりあえず標準のアイコンにするね。');
-    console.error(e);
+    console.error('処理エラー:', e);
   }
 
   chrome.storage.local.get(['icons'], (res) => {
     const icons = res.icons || [];
     icons.push({ id: Date.now(), name, url, iconData });
-    chrome.storage.local.set({ icons });
-
-    nameInput.value = '';
-    urlInput.value = '';
-    iconFileInput.value = '';
-    iconUrlInput.value = '';
-
-    selectedSimpleIconSlug = null;
-    siPreviewDiv.classList.add('hidden');
-    siSearchInput.classList.remove('hidden');
-
-    addBtn.disabled = false;
-    addBtn.textContent = '追加 ＋';
+    chrome.storage.local.set({ icons }, () => {
+      // 保存完了後のリセット
+      nameInput.value = '';
+      urlInput.value = '';
+      iconFileInput.value = '';
+      iconUrlInput.value = '';
+      selectedSimpleIcon = null;
+      siPreviewDiv.classList.add('hidden');
+      siSearchInput.classList.remove('hidden');
+      addBtn.disabled = false;
+      addBtn.textContent = '追加 ＋';
+      // 通知（alert）を削除したよ
+    });
   });
+});
+
+/**
+ * 画像リサイズ
+ */
+function resizeImage(fileOrBlob) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 128; canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 128, 128);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(fileOrBlob);
+  });
+}
+
+let searchTimer;
+searchInput.addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => sendToParent({ type: 'SEARCH_QUERY', query: e.target.value }), 150);
 });
 
 exportBtn.addEventListener('click', () => {
@@ -230,13 +247,12 @@ importInput.addEventListener('change', (e) => {
   const reader = new FileReader();
   reader.onload = (ev) => {
     try {
-      const data = JSON.parse(ev.target.result);
-      if (Array.isArray(data)) {
-        chrome.storage.local.set({ icons: data });
-        alert('復元完了！');
-        importInput.value = '';
-      }
-    } catch { alert('ファイル形式がおかしいよ！'); }
+      const icons = JSON.parse(ev.target.result);
+      chrome.storage.local.set({ icons }, () => {
+        // インポート時も通知は不要ならここも消せるけど、今回は追加時のalertだけ消したよ
+        alert('復元したよ！');
+      });
+    } catch (err) { alert('ファイルがおかしいみたい。'); }
   };
   reader.readAsText(file);
 });
