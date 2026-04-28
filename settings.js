@@ -79,7 +79,7 @@ siSearchInput.addEventListener('input', (e) => {
       item.style.cssText = 'padding:0.5rem;cursor:pointer;display:flex;align-items:center;gap:0.5rem;border-bottom:1px solid #f1f5f9;';
 
       const img = document.createElement('img');
-      img.src = `https://cdn.simpleicons.org/${slug}`;
+      img.src = `https://simpleicons.org/icons/x.svg${slug}`;
       img.style.cssText = 'width:16px;height:16px;';
       img.addEventListener('error', () => { img.src = 'img/world.svg'; });
 
