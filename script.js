@@ -63,8 +63,8 @@ function renderIcons() {
 
   filtered.forEach((item) => {
     const card = document.createElement('div');
-    card.className = 'bg-white p-4 rounded-2xl shadow-md hover:shadow-lg border border-slate-100 flex flex-col items-center gap-3 relative cursor-pointer';
-    
+    card.className = 'bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-md hover:shadow-lg border border-slate-100 dark:border-slate-700 flex flex-col items-center gap-3 relative cursor-pointer';
+
     card.addEventListener('click', () => {
       window.location.href = item.url;
     });
@@ -86,7 +86,7 @@ function renderIcons() {
     img.onerror = () => { img.src = '/img/world.svg'; };
 
     const title = document.createElement('span');
-    title.className = 'font-semibold text-slate-700 text-sm truncate w-full text-center';
+    title.className = 'font-semibold text-slate-700 dark:text-slate-200 text-sm truncate w-full text-center';
     title.textContent = item.name;
 
     card.append(img, title);
