@@ -22,6 +22,21 @@ const sendToParent = (data) => window.parent.postMessage(data, '*');
 
 closeBtn.addEventListener('click', () => sendToParent({ type: 'CLOSE_DRAWER' }));
 
+// テーマ選択の要素を取得
+const themeSelect = document.getElementById('theme-select');
+
+// 現在のテーマ設定を読み込んで反映させる
+chrome.storage.local.get(['theme'], (res) => {
+  themeSelect.value = res.theme || 'auto';
+});
+
+// 選択が変わったら storage に保存する
+themeSelect.addEventListener('change', (e) => {
+  const selectedTheme = e.target.value;
+  chrome.storage.local.set({ theme: selectedTheme });
+});
+
+
 /**
  * タイトルから Slug を生成する
  */
@@ -256,3 +271,4 @@ importInput.addEventListener('change', (e) => {
   };
   reader.readAsText(file);
 });
+
