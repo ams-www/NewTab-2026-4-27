@@ -62,12 +62,9 @@ function renderIcons() {
   );
 
   filtered.forEach((item) => {
-    const card = document.createElement('div');
-    card.className = 'bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-md hover:shadow-lg border border-slate-100 dark:border-slate-700 flex flex-col items-center gap-3 relative cursor-pointer';
-
-    card.addEventListener('click', () => {
-      window.location.href = item.url;
-    });
+    const card = document.createElement('a');
+    card.href = item.url;
+    card.className = 'bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-md hover:shadow-lg border border-slate-100 dark:border-slate-700 flex flex-col items-center gap-3 relative cursor-pointer select-none';
 
     let faviconUrl = '/img/world.svg';
     if (item.iconData) {
@@ -82,11 +79,12 @@ function renderIcons() {
     const img = document.createElement('img');
     img.src = faviconUrl;
     img.alt = item.name;
-    img.className = 'w-12 h-12 object-contain transition-transform duration-200';
+    img.className = 'w-12 h-12 object-contain transition-transform duration-200 pointer-events-none';
+    img.draggable = false;
     img.onerror = () => { img.src = '/img/world.svg'; };
 
     const title = document.createElement('span');
-    title.className = 'font-semibold text-slate-700 dark:text-slate-200 text-sm truncate w-full text-center';
+    title.className = 'font-semibold text-slate-700 dark:text-slate-200 text-sm truncate w-full text-center pointer-events-none';
     title.textContent = item.name;
 
     card.append(img, title);
