@@ -10,7 +10,17 @@
 </head>
 
 <body class="m-0 font-sans bg-slate-50 dark:bg-slate-900 overflow-hidden">
-  <div id="main-content" class="p-8 max-w-7xl mx-auto h-screen overflow-y-auto">
+  <!-- 壁紙レイヤー -->
+  <div id="wallpaper-layer"
+    class="fixed inset-0 z-0 pointer-events-none transition-opacity duration-500"
+    style="opacity: 0;">
+  </div>
+  <!-- 壁紙オーバーレイレイヤー -->
+  <div id="wallpaper-overlay"
+    class="fixed inset-0 z-0 pointer-events-none hidden">
+  </div>
+
+  <div id="main-content" class="p-8 max-w-7xl mx-auto h-screen overflow-y-auto relative z-10">
     <h1 class="text-center mb-8 text-slate-700 dark:text-slate-200 text-3xl">✨ ZY New Tab</h1>
     <p class="text-center text-slate-600 dark:text-slate-400 mb-8">お気に入りのサイトをすばやく整理・アクセス</p>
     <div id="icon-container" class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4"></div>

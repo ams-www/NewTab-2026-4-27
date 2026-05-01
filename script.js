@@ -4,9 +4,12 @@ const openEditBtn = document.getElementById('open-edit-btn');
 const drawerBackdrop = document.getElementById('drawer-backdrop');
 const drawerOverlay = document.getElementById('settings-drawer-overlay');
 const editOverlay = document.getElementById('edit-overlay');
+const wallpaperLayer = document.getElementById('wallpaper-layer');
+const wallpaperOverlayEl = document.getElementById('wallpaper-overlay');
 
 let icons = [];
 let currentQuery = '';
+let wallpaperActive = false; // 壁紙が有効かどうかのフラグ
 
 function openDrawer() {
   drawerOverlay.classList.remove('-right-full');
@@ -41,6 +44,7 @@ window.addEventListener('message', (e) => {
     currentQuery = e.data.query.toLowerCase();
     renderIcons();
   }
+  if (e.data?.type === 'WALLPAPER_CHANGED') applyWallpaper();
 });
 
 chrome.storage.local.get(['icons'], (res) => {
@@ -53,6 +57,9 @@ chrome.storage.onChanged.addListener((changes, area) => {
     icons = changes.icons.newValue || [];
     renderIcons();
   }
+  if (area === 'local' && changes.wallpaper) {
+    applyWallpaper();
+  }
 });
 
 function renderIcons() {
@@ -64,7 +71,13 @@ function renderIcons() {
   filtered.forEach((item) => {
     const card = document.createElement('a');
     card.href = item.url;
-    card.className = 'bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-md hover:shadow-lg border border-slate-100 dark:border-slate-700 flex flex-col items-center gap-3 relative cursor-pointer select-none';
+
+    // 壁紙の有無に応じてカードの背景クラスを切り替え（Tailwind運用）
+    if (wallpaperActive) {
+      card.className = 'bg-white/85 dark:bg-slate-800/85 backdrop-blur-sm p-4 rounded-2xl shadow-md hover:shadow-lg border border-slate-100/50 dark:border-slate-700/50 flex flex-col items-center gap-3 relative cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5';
+    } else {
+      card.className = 'bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-md hover:shadow-lg border border-slate-100 dark:border-slate-700 flex flex-col items-center gap-3 relative cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5';
+    }
 
     let faviconUrl = '/img/world.svg';
     if (item.iconData) {
@@ -91,3 +104,103 @@ function renderIcons() {
     container.appendChild(card);
   });
 }
+
+// ===== 壁紙機能 =====
+
+const defaultWallpaper = {
+  type: 'none',
+  color: '#1e293b',
+  url: '',
+  data: '',
+  fit: 'cover',
+  blur: 0,
+  opacity: 100,
+  overlayEnabled: false,
+  overlayColor: '#000000',
+  overlayOpacity: 30
+};
+
+/**
+ * Tailwindのfit用クラスマッピング
+ */
+const fitClassMap = {
+  cover:   { size: 'bg-cover',       pos: 'bg-center',    repeat: 'bg-no-repeat' },
+  contain: { size: 'bg-contain',     pos: 'bg-center',    repeat: 'bg-no-repeat' },
+  center:  { size: 'bg-auto',        pos: 'bg-center',    repeat: 'bg-no-repeat' },
+  repeat:  { size: 'bg-auto',        pos: 'bg-left-top',  repeat: 'bg-repeat' }
+};
+
+/**
+ * 壁紙設定をストレージから読み込み、適用する
+ */
+function applyWallpaper() {
+  chrome.storage.local.get(['wallpaper'], (res) => {
+    const wp = { ...defaultWallpaper, ...(res.wallpaper || {}) };
+
+    if (wp.type === 'none') {
+      // 壁紙なし：デフォルト背景に戻す
+      wallpaperLayer.classList.add('opacity-0');
+      wallpaperLayer.classList.remove('opacity-100');
+      // 動的な背景プロパティのみインラインでクリア
+      wallpaperLayer.style.backgroundImage = '';
+      wallpaperLayer.style.backgroundColor = '';
+      wallpaperOverlayEl.classList.add('hidden');
+      // fit関連のTailwindクラスを削除
+      Object.values(fitClassMap).forEach(c => {
+        wallpaperLayer.classList.remove(c.size, c.pos, c.repeat);
+      });
+      // カード再描画（不透明背景に戻す）
+      wallpaperActive = false;
+      renderIcons();
+      return;
+    }
+
+    // 不透明度（Tailwind opacity-{{n}} は離散値のみなのでインラインで対応）
+    wallpaperLayer.style.opacity = (wp.opacity / 100).toString();
+    wallpaperLayer.classList.remove('opacity-0');
+
+    // ぼかし（動的値のためインライン）
+    wallpaperLayer.style.filter = wp.blur > 0 ? `blur(${wp.blur}px)` : '';
+
+    // 背景クリア
+    wallpaperLayer.style.backgroundImage = '';
+    wallpaperLayer.style.backgroundColor = '';
+
+    // 既存のfitクラスを削除してから新しいものを適用
+    Object.values(fitClassMap).forEach(c => {
+      wallpaperLayer.classList.remove(c.size, c.pos, c.repeat);
+    });
+
+    if (wp.type === 'color') {
+      // 動的カラー値のためインライン
+      wallpaperLayer.style.backgroundColor = wp.color;
+    } else if (wp.type === 'url' && wp.url) {
+      // 動的URLのためインライン
+      wallpaperLayer.style.backgroundImage = `url(${wp.url})`;
+      const fitClasses = fitClassMap[wp.fit] || fitClassMap.cover;
+      wallpaperLayer.classList.add(fitClasses.size, fitClasses.pos, fitClasses.repeat);
+    } else if (wp.type === 'file' && wp.data) {
+      // 動的データのためインライン
+      wallpaperLayer.style.backgroundImage = `url(${wp.data})`;
+      const fitClasses = fitClassMap[wp.fit] || fitClassMap.cover;
+      wallpaperLayer.classList.add(fitClasses.size, fitClasses.pos, fitClasses.repeat);
+    }
+
+    // オーバーレイ
+    if (wp.overlayEnabled) {
+      const overlayAlpha = Math.round((wp.overlayOpacity / 100) * 255).toString(16).padStart(2, '0');
+      // 動的カラー計算のためインライン
+      wallpaperOverlayEl.style.backgroundColor = wp.overlayColor + overlayAlpha;
+      wallpaperOverlayEl.classList.remove('hidden');
+    } else {
+      wallpaperOverlayEl.classList.add('hidden');
+    }
+
+    // カード再描画（半透明背景にする）
+    wallpaperActive = true;
+    renderIcons();
+  });
+}
+
+// 初回読み込み時に壁紙を適用
+applyWallpaper();
