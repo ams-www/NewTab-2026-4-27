@@ -173,6 +173,65 @@ async function fetchIconAsBase64(iconUrl, hex) {
 }
 
 /**
+ * 画像（ファイルまたはBlob）を処理し、データURLを返す。
+ * SVGの場合はそのままSVGデータ、それ以外は128x128のWebPにリサイズ。
+ */
+async function processIconImage(fileOrBlob) {
+  // ファイル名またはMIMEタイプでSVGか判定
+  const isSvg = (fileOrBlob.type === 'image/svg+xml') || 
+                (fileOrBlob.name && fileOrBlob.name.toLowerCase().endsWith('.svg'));
+  
+  if (isSvg) {
+    // SVGの場合はテキストとして読み込み、Base64エンコード
+    const text = await fileOrBlob.text();
+    // 簡易的な検証：xmlタグが含まれているか
+    if (!text.includes('<svg')) {
+      throw new Error('不正なSVGファイルです');
+    }
+    return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(text)))}`;
+  }
+
+  // それ以外の画像はリサイズしてWebPに変換
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 128;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 128, 128);
+        resolve(canvas.toDataURL('image/webp'));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(fileOrBlob);
+  });
+}
+
+/**
+ * URLからアイコンを取得して処理（SVGの場合はそのまま保存）
+ */
+async function fetchIconFromUrl(url) {
+  const response = await fetch(url);
+  const contentType = response.headers.get('content-type') || '';
+  
+  if (contentType.includes('svg') || url.toLowerCase().includes('.svg')) {
+    // SVGの場合
+    const svgText = await response.text();
+    if (!svgText.includes('<svg')) {
+      throw new Error('URLが指す内容は有効なSVGではありません');
+    }
+    return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svgText)))}`;
+  } else {
+    // その他の画像形式 -> Blobとして処理
+    const blob = await response.blob();
+    return processIconImage(blob);
+  }
+}
+
+/**
  * サイト追加
  */
 addBtn.addEventListener('click', async () => {
@@ -189,14 +248,13 @@ addBtn.addEventListener('click', async () => {
     if (selectedSimpleIcon) {
       iconData = await fetchIconAsBase64(selectedSimpleIcon.iconUrl, selectedSimpleIcon.hex);
     } else if (iconFileInput.files[0]) {
-      iconData = await resizeImage(iconFileInput.files[0]);
+      iconData = await processIconImage(iconFileInput.files[0]);
     } else if (iconUrlInput.value.trim()) {
-      const res = await fetch(iconUrlInput.value.trim());
-      const blob = await res.blob();
-      iconData = await resizeImage(blob);
+      iconData = await fetchIconFromUrl(iconUrlInput.value.trim());
     }
   } catch (e) {
-    console.error('処理エラー:', e);
+    console.error('アイコン処理エラー:', e);
+    alert('アイコンの読み込みに失敗しました。別の画像をお試しください。');
   }
 
   chrome.storage.local.get(['icons'], (res) => {
@@ -213,31 +271,9 @@ addBtn.addEventListener('click', async () => {
       siSearchInput.classList.remove('hidden');
       addBtn.disabled = false;
       addBtn.textContent = '追加 ＋';
-      // 通知（alert）を削除したよ
     });
   });
 });
-
-/**
- * 画像リサイズ
- */
-function resizeImage(fileOrBlob) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 128; canvas.height = 128;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, 128, 128);
-        resolve(canvas.toDataURL('image/png'));
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(fileOrBlob);
-  });
-}
 
 let searchTimer;
 searchInput.addEventListener('input', (e) => {
@@ -264,7 +300,6 @@ importInput.addEventListener('change', (e) => {
     try {
       const icons = JSON.parse(ev.target.result);
       chrome.storage.local.set({ icons }, () => {
-        // インポート時も通知は不要ならここも消せるけど、今回は追加時のalertだけ消したよ
         alert('復元したよ！');
       });
     } catch (err) { alert('ファイルがおかしいみたい。'); }
@@ -273,7 +308,7 @@ importInput.addEventListener('change', (e) => {
 });
 
 
-// ===== 壁紙設定 =====
+// ===== 壁紙設定 (以下変更なし) =====
 
 const wpTypeSelect = document.getElementById('wallpaper-type');
 const wpColorSection = document.getElementById('wp-color-section');
@@ -489,8 +524,8 @@ function resizeWallpaperImage(fileOrBlob) {
         canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
-        // JPEGで品質0.85に圧縮（ファイルサイズ削減）
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
+        // WEBPで品質0.85に圧縮（ファイルサイズ削減）
+        resolve(canvas.toDataURL('image/webp', 0.85));
       };
       img.src = e.target.result;
     };

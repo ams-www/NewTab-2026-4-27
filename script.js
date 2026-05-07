@@ -11,7 +11,14 @@ let icons = [];
 let currentQuery = '';
 let wallpaperActive = false; // 壁紙が有効かどうかのフラグ
 
+const settingsIframe = document.getElementById('settings-iframe');
+
 function openDrawer() {
+  // 初回のみ iframe の src を設定して遅延読み込み
+  if (settingsIframe.src === 'about:blank' || settingsIframe.src === '') {
+    settingsIframe.src = 'settings.html';
+  }
+  
   drawerOverlay.classList.remove('-right-full');
   drawerOverlay.classList.add('right-0');
   drawerBackdrop.classList.add('opacity-100', 'pointer-events-auto');
@@ -23,7 +30,14 @@ function closeDrawer() {
   drawerBackdrop.classList.remove('opacity-100', 'pointer-events-auto');
   drawerBackdrop.classList.add('opacity-0', 'pointer-events-none');
 }
+const editIframe = document.getElementById('edit-iframe');
+
 function openEditMode() {
+  // 初回のみ iframe の src を設定して遅延読み込み
+  if (editIframe.src === 'about:blank' || editIframe.src === '') {
+    editIframe.src = 'edit.html';
+  }
+  
   editOverlay.classList.remove('hidden');
   editOverlay.classList.add('flex');
 }
