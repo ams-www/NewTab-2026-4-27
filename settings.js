@@ -368,7 +368,7 @@ function loadWallpaperSettings() {
     wpBlurValue.textContent = currentWallpaper.blur + 'px';
     wpOpacitySlider.value = currentWallpaper.opacity;
     wpOpacityValue.textContent = currentWallpaper.opacity + '%';
-    wpOverlayToggle.checked = currentWallpaper.overlayEnabled;
+    wpOverlayToggle.selected = currentWallpaper.overlayEnabled;
     wpOverlayColor.value = currentWallpaper.overlayColor;
     wpOverlayOpacity.value = currentWallpaper.overlayOpacity;
     wpOverlayOpacityValue.textContent = currentWallpaper.overlayOpacity + '%';
@@ -607,7 +607,7 @@ wpOpacitySlider.addEventListener('change', saveWallpaperSettings);
 
 // オーバーレイトグル
 wpOverlayToggle.addEventListener('change', (e) => {
-  if (e.target.checked) {
+  if (e.target.selected) {
     wpOverlayControls.classList.remove('hidden');
     wpOverlayControls.classList.add('flex');
   } else {

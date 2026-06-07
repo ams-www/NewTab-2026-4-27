@@ -1,21 +1,18 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ZY New Tab</title>
   <link rel="stylesheet" href="output.css">
+  <script type="module" crossorigin src="google-mwc.js"></script>
   <script src="theme.js"></script>
 </head>
-
 <body class="m-0 font-sans bg-slate-50 dark:bg-slate-900 overflow-hidden">
-  <!-- 壁紙レイヤー -->
   <div id="wallpaper-layer"
     class="fixed inset-0 z-0 pointer-events-none transition-opacity duration-500"
     style="opacity: 0;">
   </div>
-  <!-- 壁紙オーバーレイレイヤー -->
   <div id="wallpaper-overlay"
     class="fixed inset-0 z-0 pointer-events-none hidden">
   </div>
@@ -26,12 +23,17 @@
     <div id="icon-container" class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-4"></div>
   </div>
 
-  <!-- hover:-translate-y-0.5 を削除して持ち上がる動きを除去 -->
-  <button id="open-edit-btn"
-    class="fixed top-4 left-4 z-30 px-4 py-2.5 bg-slate-500 hover:bg-slate-600 dark:bg-slate-700 dark:hover:bg-slate-600 text-white border-none rounded-lg cursor-pointer font-medium shadow-md transition-all">✏️
-    編集モード</button>
-  <button id="open-settings-btn"
-    class="fixed top-4 right-4 z-30 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-500 text-white border-none rounded-lg cursor-pointer font-medium shadow-lg transition-all">設定・管理</button>
+  <md-filled-button id="open-edit-btn"
+    class="fixed top-4 left-4 z-30 shadow-md"
+    style="--md-filled-button-container-color: var(--edit-btn-bg); --md-filled-button-label-text-color: var(--edit-btn-text);">
+    ✏️ 編集モード
+  </md-filled-button>
+
+  <md-filled-button id="open-settings-btn"
+    class="fixed top-4 right-4 z-30 shadow-lg"
+    style="--md-filled-button-container-color: var(--settings-btn-bg); --md-filled-button-label-text-color: var(--settings-btn-text);">
+    設定・管理
+  </md-filled-button>
 
   <div id="drawer-backdrop"
     class="fixed inset-0 bg-black/30 dark:bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300 z-40">
@@ -47,5 +49,4 @@
 
   <script src="script.js"></script>
 </body>
-
 </html>
