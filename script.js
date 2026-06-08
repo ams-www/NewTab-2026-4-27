@@ -88,9 +88,9 @@ function renderIcons() {
 
     // 壁紙の有無に応じてカードの背景クラスを切り替え（Tailwind運用）
     if (wallpaperActive) {
-      card.className = 'bg-white/85 dark:bg-slate-800/85 backdrop-blur-sm p-4 rounded-2xl shadow-md hover:shadow-lg border border-slate-100/50 dark:border-slate-700/50 flex flex-col items-center gap-3 relative cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5';
+      card.className = 'bg-white/85 dark:bg-slate-800/85 backdrop-blur-sm p-4 rounded-2xl shadow-md hover:shadow-lg border border-slate-100/50 dark:border-slate-700/50 flex flex-col items-center gap-3 relative cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5 overflow-hidden';
     } else {
-      card.className = 'bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-md hover:shadow-lg border border-slate-100 dark:border-slate-700 flex flex-col items-center gap-3 relative cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5';
+      card.className = 'bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-md hover:shadow-lg border border-slate-100 dark:border-slate-700 flex flex-col items-center gap-3 relative cursor-pointer select-none transition-transform duration-200 hover:-translate-y-0.5 overflow-hidden';
     }
 
     let faviconUrl = '/img/world.svg';
@@ -114,7 +114,10 @@ function renderIcons() {
     title.className = 'font-semibold text-slate-700 dark:text-slate-200 text-sm truncate w-full text-center pointer-events-none';
     title.textContent = item.name;
 
-    card.append(img, title);
+    const ripple = document.createElement('md-ripple');
+    ripple.setAttribute('for', 'link');
+
+    card.append(img, title, ripple);
     container.appendChild(card);
   });
 }
