@@ -115,8 +115,6 @@ function renderIcons() {
     title.textContent = item.name;
 
     const ripple = document.createElement('md-ripple');
-    ripple.setAttribute('for', 'link');
-
     card.append(img, title, ripple);
     container.appendChild(card);
   });
